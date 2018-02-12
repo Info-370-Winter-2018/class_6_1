@@ -90,6 +90,30 @@ hist(ads_sales$sales)
 summary(model)
 # Draw a scatterplot with your model on it to show how well the model fits the data
 # Hint: broom and ggplot may be useful here
+
+sales_with_residuals <- augment(model, ads_sales)
+sales_with_residuals
+hist(sales_with_residuals$.fitted)
+hist(sales_with_residuals$sales)
+
+
+#refactor
+for(binwide in seq(.5,1, length.out=10)){
+g <- ggplot(data=sales_with_residuals, aes(sales)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals, aes(.fitted)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+  
+}
+
+
 ```
 ## Skeptical Modeling process
 1. Exploratory data analysis
@@ -107,21 +131,31 @@ Interpret model
 
 
 ```{r}
-# Using multiple regression, create a linear model that uses 
-# sex, rank, and years in current rank variables to estimate salary
 
-# What is the effect size for each variable in the model?
+# Using multiple regression with interaction terms:
 
-# Write what surprises you....
-# (write text here)
+model_2 <- lm ( sales ~ TV * radio + newspaper, data=ads_sales)
+model_2
 
-# Create a new dataset with your multiple regression model's predictions in a new column
+mod_plot(model_2) #fmodel_2
 
+# What is the effect size of each explanatory variable on the outcome variable (dependent variable)?
 
-# How do the new model's predictions compare to the simpler model's predictions?
-# Make plots and then write below
+mod_effect(model_2, ~ TV) # like effect_size
+mod_effect(model_2, ~ radio)
+mod_effect(model_2, ~ newspaper)
 
-# (write text here)
+sales_model_2ed <- mod_fun(model_2)
+
+effect_size_of_newspaper <- (sales_model_2ed(TV=150, radio=23, newspaper = 46)$model_2_output -sales_model_2ed(TV=150, radio=23, newspaper = 26)$model_2_output) / (46-26)
+effect_size_of_newspaper
+# Hint: you can use tools from statisticalModeling package used in the Datacamp course
+
+# Evaluate the accuracy of your model_2. Calculate a metric for it.
+sqrt(mod_error(model_2))
+hist(ads_sales$sales)
+# Interpret the metric for accuracy above.
+summary(model_2)
 
 
 # Create a scatter plot with years since degree on the x axis, and 
