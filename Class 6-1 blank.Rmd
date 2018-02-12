@@ -26,23 +26,23 @@ ads_sales
 # Less naive modeling
 1. Exploratory data analysis
 
-Split data into training and test
+*Split data into training and test
 
 2. Fit a model
 3. Evaluate the model by adding residuals and looking at MSE
-  Using cross-validation
+  *Using cross-validation
   
 Interpret model
-  Using bootstrapped confidence intervals for effect sizes / parameters
+  *Using bootstrapped confidence intervals for effect sizes / parameters
   
 4. Use model for decision
 
 ## Exploratory Data Analysis
-Before doing any modeling, you should get a basic feel for the gender breakdown in your dataset.
+Before doing any modeling, you should get a basic feel for dependent and indpendent variables and their relationships visually.
 ```{r}
 #look at the data with histograms and scatterplots
 
-
+car::scatterplotMatrix(ads_sales)
 
 
 ```
@@ -65,8 +65,9 @@ Write code for each of the below:
 ##Simple linear regression: what is the salary increase associated with each additional year in your current position (yr)?
 
 ```{r}
-# Create a simple linear model that assesses the relationship between 
-# years in current position with salary
+# Create a simple linear model that assesses the relationship tv radio, and newspapers and sales
+
+
 
 # What is the effect size of years on salary?
 # Hint: you can use tools from statisticalModeling package used in the Datacamp course
