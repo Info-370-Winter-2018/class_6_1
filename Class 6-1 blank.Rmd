@@ -66,16 +66,28 @@ Write code for each of the below:
 
 ```{r}
 # Create a simple linear model that assesses the relationship tv radio, and newspapers and sales
+model <- lm ( sales ~ TV + radio + newspaper, data=ads_sales)
+model
 
+mod_plot(model) #fmodel
 
+# What is the effect size of each explanatory variable on the outcome variable (dependent variable)?
 
-# What is the effect size of years on salary?
+mod_effect(model, ~ TV) # like effect_size
+mod_effect(model, ~ radio)
+mod_effect(model, ~ newspaper)
+
+sales_modeled <- mod_fun(model)
+
+effect_size_of_newspaper <- (sales_modeled(TV=150, radio=23, newspaper = 46)$model_output -sales_modeled(TV=150, radio=23, newspaper = 26)$model_output) / (46-26)
+effect_size_of_newspaper
 # Hint: you can use tools from statisticalModeling package used in the Datacamp course
 
 # Evaluate the accuracy of your model. Calculate a metric for it.
-
+sqrt(mod_error(model))
+hist(ads_sales$sales)
 # Interpret the metric for accuracy above.
-
+summary(model)
 # Draw a scatterplot with your model on it to show how well the model fits the data
 # Hint: broom and ggplot may be useful here
 ```
