@@ -1,0 +1,164 @@
+---
+title: "Class 6.1 Example in class - Linear modeling dos and don'ts"
+output: html_notebook
+---
+
+Loading data
+```{r}
+library(statisticalModeling)
+library(mosaicModel)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+require(broom)
+library(lattice)
+ads_sales <- as_tibble(read.csv("Advertising.csv"))
+ads_sales
+```
+
+## Oversimplified Modeling process
+1. Exploratory data analysis
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+4. Use model for decision
+
+
+# Class Example
+
+# Oversimplified Modeling - Example of what not to do
+
+
+# Fit a model
+
+```{r}
+#fit a linear model for sales
+
+
+# get the coefficients from the model
+# tidy is a trick to make the model object from lm into a data frame
+#   makes it easier to extract parts of it
+#   -> you can access them with paramters[1] to get the intercept, [2] for the slope
+
+
+
+```
+# Evaluate the model
+
+```{r}
+
+
+```
+
+## Interpret the model
+```{r}
+
+
+```
+
+Do you think this is a good model for the data set? Why?
+  Write your answer here
+
+What information would help you answer the question above better?
+  Write your answer here
+  
+
+# Less naive modeling
+## Exploratory Data Analysis
+Before doing any modeling, you should get a basic feel for the gender breakdown in your dataset.
+```{r}
+#look at the data with histograms and scatterplots
+
+
+
+
+```
+Write code for each of the below:
+```{r}
+
+# What is the number of males/females in the dataset? What does this already tell you...?
+
+# What is the mean salary by sex? Hint: you'll have to groupby sex (`sx`)
+
+# Draw histograms for the distribution of salaries for males and females (separately)
+# Hint: you can use ggplot and facet 
+# The x and y axes should be consistent between the graphs
+
+# Draw histograms for the distribution of salaries by rank
+
+# Create scatterplots to show how salary compares to years since degree / in current rank
+
+```
+##Simple linear regression: what is the salary increase associated with each additional year in your current position (yr)?
+
+```{r}
+# Create a simple linear model that assesses the relationship between 
+# years in current position with salary
+
+# What is the effect size of years on salary?
+# Hint: you can use tools from statisticalModeling package used in the Datacamp course
+
+# Evaluate the accuracy of your model. Calculate a metric for it.
+
+# Interpret the metric for accuracy above.
+
+# Draw a scatterplot with your model on it to show how well the model fits the data
+# Hint: broom and ggplot may be useful here
+```
+## Skeptical Modeling process
+1. Exploratory data analysis
+
+Split data into training and test
+
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+  Using cross-validation
+  
+Interpret model
+  Using bootstrapped confidence intervals for effect sizes / parameters
+  
+4. Use model for decision
+
+
+```{r}
+# Using multiple regression, create a linear model that uses 
+# sex, rank, and years in current rank variables to estimate salary
+
+# What is the effect size for each variable in the model?
+
+# Write what surprises you....
+# (write text here)
+
+# Create a new dataset with your multiple regression model's predictions in a new column
+
+
+# How do the new model's predictions compare to the simpler model's predictions?
+# Make plots and then write below
+
+# (write text here)
+
+
+# Create a scatter plot with years since degree on the x axis, and 
+# Salary on the y axis. Show points for both the data, and the multiple regression values.
+# Bonus points: improve the visualization above by adding more variables
+```
+##Assess predictions
+
+```{r}
+# Make a scatterplot that compares the data (x) to the predictions (y)
+# Add a line showing where the perfect values would be (i.e., prediction equal to data)
+
+# What are the MSE values of the two models?
+
+# Which one explains more variance?
+
+# Plot the salary v.s. the *residuals* (difference between actual and predicted values)
+# Create a separate (adjacent) plot for each model
+# Add a horizontal line at 0 to help interpret the graph
+# or use the ggplot resources in #help on slack to make a better residuals plot
+# ie
+# http://shinyapps.org/apps/RGraphCompendium/index.php
+# http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+
+# Provide an interpretation for these graphs
+# (write here)
+```
