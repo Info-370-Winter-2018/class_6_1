@@ -137,15 +137,21 @@ Interpret model
 model_2 <- lm ( sales ~ TV * radio + newspaper, data=ads_sales)
 model_2
 
+mod_plot(model)
 mod_plot(model_2) #fmodel_2
+
+
 
 # What is the effect size of each explanatory variable on the outcome variable (dependent variable)?
 
+mod_effect(model, ~ TV) # like effect_size
 mod_effect(model_2, ~ TV) # like effect_size
 mod_effect(model_2, ~ radio)
 mod_effect(model_2, ~ newspaper)
 
-sales_model_2ed <- mod_fun(model_2)
+sales_model_2ed <- mod_fun(model_2) 
+# sales = a1 + a2*tv + a3*radio + a4*tv*radio
+
 
 effect_size_of_newspaper <- (sales_model_2ed(TV=150, radio=23, newspaper = 46)$model_2_output -sales_model_2ed(TV=150, radio=23, newspaper = 26)$model_2_output) / (46-26)
 effect_size_of_newspaper
@@ -157,6 +163,48 @@ hist(ads_sales$sales)
 # Interpret the metric for accuracy above.
 summary(model_2)
 
+sales_with_residuals_2 <- augment(model_2, ads_sales)
+sales_with_residuals_2
+g <- ggplot(data=sales_with_residuals_2, aes(sales)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals_2, aes(.fitted)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals, aes(.fitted)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30)) + labs(subtitle="No interaction model")
+  
+sales_with_residuals_2 <- augment(model_2, ads_sales)
+sales_with_residuals_2
+g <- ggplot(data=sales_with_residuals_2, aes(sales)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals_2, aes(.resid)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals, aes(.resid)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30)) + labs(subtitle="No interaction model")
+  
+
+
 
 # Create a scatter plot with years since degree on the x axis, and 
 # Salary on the y axis. Show points for both the data, and the multiple regression values.
@@ -165,6 +213,7 @@ summary(model_2)
 ##Assess predictions
 
 ```{r}
+plot(summary(model_2))
 # Make a scatterplot that compares the data (x) to the predictions (y)
 # Add a line showing where the perfect values would be (i.e., prediction equal to data)
 
