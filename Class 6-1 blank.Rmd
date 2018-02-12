@@ -17,52 +17,26 @@ ads_sales
 ```
 
 ## Oversimplified Modeling process
-1. Exploratory data analysis
-2. Fit a model
-3. Evaluate the model by adding residuals and looking at MSE
-4. Use model for decision
 
+1. Fit a model
+2. Evaluate the model by adding residuals and looking at MSE
+3. Use model for decision
 
-# Class Example
-
-# Oversimplified Modeling - Example of what not to do
-
-
-# Fit a model
-
-```{r}
-#fit a linear model for sales
-
-
-# get the coefficients from the model
-# tidy is a trick to make the model object from lm into a data frame
-#   makes it easier to extract parts of it
-#   -> you can access them with paramters[1] to get the intercept, [2] for the slope
-
-
-
-```
-# Evaluate the model
-
-```{r}
-
-
-```
-
-## Interpret the model
-```{r}
-
-
-```
-
-Do you think this is a good model for the data set? Why?
-  Write your answer here
-
-What information would help you answer the question above better?
-  Write your answer here
-  
 
 # Less naive modeling
+1. Exploratory data analysis
+
+Split data into training and test
+
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+  Using cross-validation
+  
+Interpret model
+  Using bootstrapped confidence intervals for effect sizes / parameters
+  
+4. Use model for decision
+
 ## Exploratory Data Analysis
 Before doing any modeling, you should get a basic feel for the gender breakdown in your dataset.
 ```{r}
@@ -162,3 +136,49 @@ Interpret model
 # Provide an interpretation for these graphs
 # (write here)
 ```
+
+## Oversimplified Modeling process
+1. Exploratory data analysis
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+4. Use model for decision
+
+
+# Class Example
+
+# Oversimplified Modeling - Example of what not to do
+
+
+# Fit a model
+
+```{r}
+#fit a linear model for sales
+
+
+# get the coefficients from the model
+# tidy is a trick to make the model object from lm into a data frame
+#   makes it easier to extract parts of it
+#   -> you can access them with paramters[1] to get the intercept, [2] for the slope
+
+
+
+```
+# Evaluate the model
+
+```{r}
+
+
+```
+
+## Interpret the model
+```{r}
+
+
+```
+
+Do you think this is a good model for the data set? Why?
+  Write your answer here
+
+What information would help you answer the question above better?
+  Write your answer here
+  
