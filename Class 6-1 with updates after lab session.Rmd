@@ -414,11 +414,6 @@ plot(model_2)
 plot(model)
 
 ```
-# Commentary on "outliers" and Cook's distance
-I'm going to use this last plot of the 4 to make a very important point - don't remove outliers from your data the actually reflect reality. The last plot with leverage shows points that have an overly large influence on the fitted line (recall that linear models minimize sum of the squares of the residuals, and an outlier point is going to be even bigger when squared, so it has more influence). This is one of the main issues with linear models, so people often try to trim their data of outliers and may use cook's distance to argue that.
 
-However, it's improper to remove data unless you really understand it and see it was a measurement error; you shouldn't remove reality from your dataset. Otherwise you can make very big mistakes (example of faulty logic: "let's estimate the effects of war on countries, oh, world war 1 and world war 2 were just outliers, we can exclude those." That logic will lead to some large underestimates of the potential effects of war). Even though the war example shows the foolishness of this logic, scientists and even statisticians in practice sometimes use that flawed logic.
-
-Now, sometimes people also try to argue removing outliers using language games. Statisticians and scientists might try to justify removing outliers by saying they are studying "small conflicts" not wars - just changing the words they use to refer to their phenomena. The fact is that the dynamics that underly conflict produce many small events as well as rare extreme events; excluding those rare events in your models leads to things like 1) financial crises, and 2) building walls around Fukushima nuclear reactors that are not high enough. 
 
   
