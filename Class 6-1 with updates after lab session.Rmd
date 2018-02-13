@@ -401,6 +401,7 @@ grid.arrange(simulated_residuals_for_gaussian_noise_1_plot,sales_residuals_plot,
 # 3. repeat, to the quality of model you need for your purpose (strive for higher tho)
 ```
 ##Assess predictions
+
 Here are some built-in plots that all have the same purpose - to validate that the model fits your data. I won't go in depth with these, but the general idea of each is that you want the points to fall around the dotted line with just random variation around it without any patterns (on q-q plot , the 2nd one from the plot call, you want them to fall on the line).
 
 There are also statistical tests for normality of residuals, but in practice almost no one uses them because 1) they almost always say that the residuals are not normal (which is a blow to your model so they just ignore that...) 2) I have heard people say that the linear model has some "robustness" against deviations from its assumptions, but I don't really buy that b/c if we understood the robustness conditions well, we should be able to make a test for "normal enough" residuals, and I've never seen one or heard one mentioned. Thus, I'm emphasizing the visual approach (which is also more informative than a p-value).
