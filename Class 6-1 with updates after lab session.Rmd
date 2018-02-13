@@ -292,14 +292,12 @@ Here's a process to follow when modeling (as a refresher). We won't cover all th
 
 1. Exploratory data analysis
 
-Split data into training and test
+*Split data into training and test*
 
 2. Fit a model
-3. Evaluate the model by adding residuals and looking at MSE
-  Using cross-validation
+3. Evaluate the model *by adding residuals and looking at MSE (using cross-validation)*
   
-Interpret model
-  Using bootstrapped confidence intervals for effect sizes / parameters
+*Interpret model by using bootstrapped confidence intervals for effect sizes / parameters*
   
 4. Use model for decision
 
