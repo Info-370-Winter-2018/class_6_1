@@ -1,0 +1,424 @@
+---
+title: "Class 6.1 Example in class - Linear modeling with commentary"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+Loading data
+```{r}
+library(statisticalModeling)
+library(mosaicModel) # newer version of statisticalModeling with better functions
+library(tidyverse)
+library(mosaic)
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(lattice)
+library(gridExtra)
+library(grid)
+
+ads_sales <- as_tibble(read.csv("Advertising.csv"))
+ads_sales
+```
+
+## Oversimplified Modeling process
+
+1. Fit a model
+2. Evaluate the model by adding residuals and looking at MSE
+3. Use model for decision
+
+
+# Less naive modeling
+1. Exploratory data analysis
+
+*Split data into training and test
+
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+  *Using cross-validation
+  
+Interpret model
+  *Using bootstrapped confidence intervals for effect sizes / parameters
+  
+4. Use model for decision
+
+## Exploratory Data Analysis
+Before doing any modeling, you should get a basic feel for dependent and indpendent variables and their relationships visually.
+```{r}
+#look at the data with histograms and scatterplots
+
+# Package
+# this is a pedagogical package from a 2011 textbook
+# with some useful graphics functions
+# library(car)
+# I'm not library'ing it b/c it has some namespace clashes with dplyr
+
+
+car::scatterplotMatrix(ads_sales)
+
+#let's make a nicer looking scatter plot matrix
+#  We should all ask ourselves why the makers of graphics libraries
+#  don't have better defaults...
+
+# Package
+# This is the R package version of the
+# color brewer website we discussed for making accessible color schemes
+library(RColorBrewer)
+
+# Make the plot
+car::scatterplotMatrix(~ sales + TV + radio + newspaper , data=ads_sales , 
+                  #reg.line="" , #would turn regression lines off
+                  #smoother="", #would turn Loess regression lines off
+                  # col=my_colors ,
+                  smoother.args=list(col="grey") , 
+                  #cex=1.5 , 
+                  #pch=c(15,16,17) , 
+                  main="Ad Sales Scatter Plot Matrix")
+
+# Another example with categorical data from mtcars dataset
+
+# If you needed a color scheme for a categorical variable
+# this is how you would make one with color brewer
+my_colors <- brewer.pal(nlevels(as.factor(mtcars$cyl)), "Set2")
+
+# example of how to make SPLOM with categorical coloring
+car::scatterplotMatrix(~mpg+disp+drat|cyl, data=mtcars, 
+                  reg.line="" , 
+                  smoother="", 
+                   col=my_colors ,
+                  smoother.args=list(col="grey") , 
+                  cex=1.5 , 
+                  pch=c(15,16,17) , 
+                  main="Scatter plot with Three Cylinder Options")
+
+
+```
+If we were doing a deeper analysis, we'd write some questions below and then answer them, to explore the data. Here are some examples from HW5, on data about faculty salaries.
+```{r}
+
+# What is the number of males/females in the dataset? What does this already tell you...?
+
+# What is the mean salary by sex? Hint: you'll have to groupby sex (`sx`)
+
+# Draw histograms for the distribution of salaries for males and females (separately)
+# Hint: you can use ggplot and facet 
+# The x and y axes should be consistent between the graphs
+
+# Draw histograms for the distribution of salaries by rank
+
+# Create scatterplots to show how salary compares to years since degree / in current rank
+
+```
+##Simple linear regression:
+First, make a model and visualize it.
+```{r}
+# Create a simple linear model that assesses the relationship tv radio, and newspapers and sales
+model <- lm ( sales ~ TV + radio + newspaper, data=ads_sales)
+model
+
+#old statisticalModeling way
+fmodel(model)
+#new mosaicModel way, use this one in your code
+# Compare the old and new, and notice the new one has better information
+# it really is an upgrade!
+#   To reinforce what I said in lecture, the reason we're using mosaicModel 
+#   is to have more time to focus on the essential problems in modeling;
+#   these packages implement minutiae / detailed knowledge like the 
+#   formula for calculating an effect size.
+mod_plot(model) 
+```
+# Statistical summary of model
+For most models in r, they provide a summary. You can broom the summary to get most of the information out in rows instead of a strange string format. Looking at this the p-value of the model is very low - the probability of these coefficients assuming the data was generated randomly is very low! The R^2 is also really high! Naively, we might think this means we have a great model. Far from it. This is why we need to look at residuals to check for model bias / systematic lack of fit with data.
+```{r}
+# Interpret the metric for accuracy above.
+summary(model)
+
+tidy(summary(model))
+```
+
+# Visualize the distribution of the predictions and actual values
+If the predicted values have a different distribution, we might have model bias (ie the model architecture or formula doesn't match the patterns in the data).
+
+```{r}
+# add residuals and fitted values (ie the model's prediction)
+sales_with_residuals <- augment(model, ads_sales)
+sales_with_residuals
+
+#never compare histograms with different scales and bin-widths
+# like these ones
+hist(sales_with_residuals$.fitted)
+hist(sales_with_residuals$sales)
+
+# here we force them to have the same axes
+binwide<-.5
+ g <- ggplot(data=sales_with_residuals, aes(sales)) 
+  
+
+  g1 <- g + geom_histogram( 
+    binwidth = binwide, 
+    col="black", 
+    size=.1) + xlim(c(0, 30)) + ylim(c(0, 30)) + labs(title=paste("Actual Sales, binwidth=",binwide))
+  
+  g <- ggplot(data=sales_with_residuals, aes(.fitted)) 
+  g2 <- g + geom_histogram( 
+    binwidth = binwide, 
+    col="black", 
+    size=.1) + xlim(c(0, 30)) + ylim(c(0, 30)) + labs(title=paste("Predicted Sales, binwidth=",binwide))
+  
+  grid.arrange(g1,g2,ncol=1)
+  
+# now, binwidth can make a big difference in comparing plots,
+# so we'll make a for loop that tries different widths
+for(binwide in seq(.5,1, length.out=10)){
+  
+  g <- ggplot(data=sales_with_residuals, aes(sales)) 
+  
+
+  g1 <- g + geom_histogram( 
+    binwidth = binwide, 
+    col="black", 
+    size=.1) + xlim(c(0, 30)) + ylim(c(0, 30)) + labs(title=paste("Actual Sales, binwidth=",binwide))
+  
+  g <- ggplot(data=sales_with_residuals, aes(.fitted)) 
+  g2 <- g + geom_histogram( 
+    binwidth = binwide, 
+    col="black", 
+    size=.1) + xlim(c(0, 30)) + ylim(c(0, 30)) + labs(title=paste("Predicted Sales, binwidth=",binwide))
+  
+  grid.arrange(g1,g2,ncol=1)
+  
+}
+
+```
+
+
+# Visualize the residuals of the model to check for model bias
+If the residuals don't look like random noise, we very likely have model bias, and should try different formulas or model architectures. Random noise for most models is Gaussian noise (the Gaussian distribution is also called the "normal" distribution, but I think that name is misleading. It's very important as a distribution and useful, but the word "normal" makes it sound like it's what data "usually" follows, which really is untrue.)  
+
+```{r}
+
+g <- ggplot(data=sales_with_residuals, aes(.resid)) 
+g1 <- g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + labs(subtitle="No interaction model")
+g1
+
+# let's get the limits of the plot by absolute value of the residuals
+# this will help us see the residuals aren't symmetric around zero
+# like gaussian random error should be / is assumed by linear model
+plot_limit <- max(abs(sales_with_residuals$.resid))+.5
+g <- ggplot(data=sales_with_residuals, aes(.resid)) 
+sales_residuals_plot <- g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(-plot_limit, plot_limit)) + labs(subtitle="No interaction model")
+sales_residuals_plot
+
+```
+We can see here they don't look like random noise. 
+
+Here's what random Gaussian noise might look like. You can generate Gaussian noise with rnorm(mean,sd). I'm getting sd as the standard error from the model, this uses some statistical estimation under the hood.
+```{r}
+sd <- sigma(model)
+sd
+# the do(n) syntax is a shortcut for
+# doing the following parts n times, then combining the results into a vector
+nrow(ads_sales)
+simulated_residuals_for_gaussian_noise <- do(nrow(ads_sales)) * rnorm(1,0,sd)
+simulated_residuals_for_gaussian_noise
+
+g <- ggplot(data=simulated_residuals_for_gaussian_noise, aes(rnorm)) 
+simulated_residuals_for_gaussian_noise_1_plot <- g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(-plot_limit, plot_limit)) + labs(subtitle="Simulated Gaussian noise")
+
+ grid.arrange(simulated_residuals_for_gaussian_noise_1_plot,sales_residuals_plot,ncol=1)
+
+```
+
+
+# Look at summary statistics for the model's accuracy, like MSE
+Here we aren't using cross-validation. In practice you should always calculate this using cross-validation. You can even do the steps above 10x with cross validation, showing residuals and predictions on the testing dataset; a very prudent and careful modeler might do that in practice.
+
+```{r}
+#Evaluate the accuracy of your model. Calculate a metric for it.
+
+# this is the statiscalModeling function
+# they want you to use cross validation so badly (and you should)
+# that they don't have a separate function for MSE without cross-validation
+# cv_pred_error(model)
+
+# Here's the "new" way with mosaicModel.
+
+mod_error(model) #MSE
+
+# you can look at broom(summary(model)) to get 
+# a more statistically "accurate" estimation of SE
+# though those methods assume the model's formula and architecture match reality
+sqrt(mod_error(model))
+```
+
+# Next, we start interpreting the model
+We're doing this as a part of showing the new mosaicModel functions, which correspond to the statisticalModeling functions you learned online. Normally, if the residuals didn't look good, then we wouldn't interpret the model, b/c the data doesn't appear to be fit well by the model (its assumptions appear violated).
+```{r}
+# What is the effect size of each explanatory variable on the outcome variable (dependent variable)?
+
+#old way
+# effect_size(model, ~ variables to change)
+effect_size(model,  ~ TV)
+#new way
+mod_effect(model, ~ TV)
+mod_effect(model, ~ radio)
+mod_effect(model, ~ newspaper)
+
+
+# here's the underlying way mod_effect works
+effect_size_of_newspaper <- (sales_modeled(TV=150, radio=23, newspaper = 46)$model_output -sales_modeled(TV=150, radio=23, newspaper = 26)$model_output) / (46-26)
+effect_size_of_newspaper
+
+# here's how to get the function for the model
+# i.e. function(explanatory variables) which gives a prediction for dependent variable
+sales_modeled <- mod_fun(model)
+
+
+```
+
+
+## Skeptical Modeling process
+Here's a process to follow when modeling (as a refresher). We won't cover all the steps here in this analysis.
+
+1. Exploratory data analysis
+
+Split data into training and test
+
+2. Fit a model
+3. Evaluate the model by adding residuals and looking at MSE
+  Using cross-validation
+  
+Interpret model
+  Using bootstrapped confidence intervals for effect sizes / parameters
+  
+4. Use model for decision
+
+# Continuing our analysis
+As the model above didn't seem to fit the data, let's try one with an interaction term, motivated by our domain knowledge.
+
+```{r}
+
+# Using multiple regression with interaction terms:
+
+model_2 <- lm ( sales ~ TV * radio + newspaper, data=ads_sales)
+model_2
+
+# let's compare the two models, the new one has interaction effects
+grid.arrange(mod_plot(model)+labs(subtitle="No interactions model") ,
+             mod_plot(model_2)+labs(subtitle="TV*radio + newspaper model (with interaction)"), ncol=1)
+
+
+
+
+# What is the effect size of each explanatory variable on the outcome variable (dependent variable)?
+
+mod_effect(model, ~ TV) # like effect_size
+mod_effect(model_2, ~ TV) # like effect_size
+mod_effect(model_2, ~ radio)
+mod_effect(model_2, ~ newspaper)
+
+sales_model_2ed <- mod_fun(model_2) 
+# sales = a1 + a2*tv + a3*radio + a4*tv*radio
+
+
+effect_size_of_newspaper <- (sales_model_2ed(TV=150, radio=23, newspaper = 46)$model_2_output -sales_model_2ed(TV=150, radio=23, newspaper = 26)$model_2_output) / (46-26)
+effect_size_of_newspaper
+# Hint: you can use tools from statisticalModeling package used in the Datacamp course
+
+# Evaluate the accuracy of your model_2. Calculate a metric for it.
+sqrt(mod_error(model_2))
+hist(ads_sales$sales)
+# Interpret the metric for accuracy above.
+summary(model_2)
+
+sales_with_residuals_2 <- augment(model_2, ads_sales)
+sales_with_residuals_2
+g <- ggplot(data=sales_with_residuals_2, aes(sales)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals_2, aes(.fitted)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30))
+
+g <- ggplot(data=sales_with_residuals, aes(.fitted)) 
+g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(0, 30)) + labs(subtitle="No interaction model")
+  
+sales_with_residuals_2 <- augment(model_2, ads_sales)
+sales_with_residuals_2
+
+
+# residuals histograms
+plot_limit <- max(abs(sales_with_residuals_2$.resid))+.5
+g <- ggplot(data=sales_with_residuals_2, aes(.resid)) 
+sales_residuals_plot_2 <- g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(-plot_limit, plot_limit)) + labs(subtitle=" Has interaction model")
+sales_residuals_plot_2
+
+# compare to simulated residuals
+sd2 <- sigma(model_2)
+sd2
+# the do(n) syntax is a shortcut for
+# doing the following parts n times, then combining the results into a vector
+nrow(ads_sales)
+simulated_residuals_for_gaussian_noise2 <- do(nrow(ads_sales)) * rnorm(1,0,sd2)
+simulated_residuals_for_gaussian_noise2
+
+g <- ggplot(data=simulated_residuals_for_gaussian_noise2, aes(rnorm)) 
+g <- g + geom_histogram( 
+                   binwidth = .5, 
+                   col="black", 
+                   size=.1) + xlim(c(-plot_limit, plot_limit)) + labs(subtitle="Simulated Gaussian noise")
+
+grid.arrange(g,sales_residuals_plot_2,ncol=1)
+
+#compare to the no interaction model
+grid.arrange(simulated_residuals_for_gaussian_noise_1_plot,sales_residuals_plot,ncol=1)
+
+# you can see that our new model has better looking residuals, more similar to 
+# gaussian noise
+
+# modeling proceeds in a sequence like this
+# 1. try model, evaluate its fit 
+# 2. change model architecture and formula when you see patterns in residuals
+# 3. repeat, to the quality of model you need for your purpose (strive for higher tho)
+```
+##Assess predictions
+Here are some built-in plots that all have the same purpose - to validate that the model fits your data. I won't go in depth with these, but the general idea of each is that you want the points to fall around the dotted line with just random variation around it without any patterns (on q-q plot , the 2nd one from the plot call, you want them to fall on the line).
+
+There are also statistical tests for normality of residuals, but in practice almost no one uses them because 1) they almost always say that the residuals are not normal (which is a blow to your model so they just ignore that...) 2) I have heard people say that the linear model has some "robustness" against deviations from its assumptions, but I don't really buy that b/c if we understood the robustness conditions well, we should be able to make a test for "normal enough" residuals, and I've never seen one or heard one mentioned. Thus, I'm emphasizing the visual approach (which is also more informative than a p-value).
+
+```{r}
+plot(model_2)
+
+#compare to model without interactions
+plot(model)
+
+```
+# Commentary on "outliers" and Cook's distance
+I'm going to use this last plot of the 4 to make a very important point - don't remove outliers from your data the actually reflect reality. The last plot with leverage shows points that have an overly large influence on the fitted line (recall that linear models minimize sum of the squares of the residuals, and an outlier point is going to be even bigger when squared, so it has more influence). This is one of the main issues with linear models, so people often try to trim their data of outliers and may use cook's distance to argue that.
+
+However, it's improper to remove data unless you really understand it and see it was a measurement error; you shouldn't remove reality from your dataset. Otherwise you can make very big mistakes (example of faulty logic: "let's estimate the effects of war on countries, oh, world war 1 and world war 2 were just outliers, we can exclude those." That logic will lead to some large underestimates of the potential effects of war). Even though the war example shows the foolishness of this logic, scientists and even statisticians in practice sometimes use that flawed logic.
+
+Now, sometimes people also try to argue removing outliers using language games. Statisticians and scientists might try to justify removing outliers by saying they are studying "small conflicts" not wars - just changing the words they use to refer to their phenomena. The fact is that the dynamics that underly conflict produce many small events as well as rare extreme events; excluding those rare events in your models leads to things like 1) financial crises, and 2) building walls around Fukushima nuclear reactors that are not high enough. 
+
+  
